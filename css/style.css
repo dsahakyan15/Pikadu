@@ -212,14 +212,14 @@ body {
   color: #595959;
 }
 
-.login-input{
+.login-input {
   display: block;
   background-color: #fff;
   border: 1px solid #e8e8e8;
   padding: 5px 15px;
   margin-bottom: 15px;
 }
-.login-forget{
+.login-forget {
   text-align: center;
   font-size: 12px;
   text-decoration: none;
@@ -227,7 +227,7 @@ body {
   margin-bottom: 10px;
   font-style: italic;
 }
-.login-signin{
+.login-signin {
   background-color: #fa8c16;
   border: none;
   border-radius: 2px;
@@ -235,17 +235,18 @@ body {
   cursor: pointer;
   line-height: 32px;
   font-size: 12px;
-  color: #fff;
   margin-bottom: 15px;
 }
 
-.login-signin:hover{
-  filter: opacity(80%);
+.login-signin:hover {
+  -webkit-filter: opacity(80%);
+          filter: opacity(80%);
 }
-.login-signin:active{
-  filter: brightness(85%);
+.login-signin:active {
+  -webkit-filter: brightness(85%);
+          filter: brightness(85%);
 }
-.login-signup{
+.login-signup {
   color: #fa8c16;
   text-align: center;
   font-size: 12px;
@@ -258,6 +259,8 @@ body {
   background-color: #fafafa;
   border: 1px solid #e8e8e8;
   padding: 15px 25px;
+}
+.user-container{
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -266,10 +269,57 @@ body {
   display: flex;
   align-items: center;
   text-decoration: none;
+  margin-right: auto;
 }
 .user-avatar {
   border-radius: 50%;
+  object-fit:cover;
   margin-right: 17px;
+}
+.edit {
+  margin-right: 10px;
+}
+.edit-title{
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #595959;
+}
+.edit-container{
+  display: none;
+}
+.edit-container.visible{
+  display: block;
+}
+.edit-label{
+  display: block;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.edit-btn{
+  background-color: #fa8c16;
+  width: 100%;
+  border: none;
+  border-radius: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  line-height: 32px;
+  font-size: 12px;
+  margin-bottom: 15px;
+}
+.edit-input{
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  padding: 5px 10px;
+}
+
+
+.icon-edit {
+  width: 20px;
+  height: 20px;
 }
 .user-name {
   font-weight: 600;
