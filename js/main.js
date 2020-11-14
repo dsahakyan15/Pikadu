@@ -1,3 +1,21 @@
+
+
+// Your web app's Firebase configuration
+var firebaseConfig = {
+  apiKey: "AIzaSyCRWZerDhPoeRCuhEHHjm9ObzHVn6e970g",
+  authDomain: "pikapika-ac808.firebaseapp.com",
+  databaseURL: "https://pikapika-ac808.firebaseio.com",
+  projectId: "pikapika-ac808",
+  storageBucket: "pikapika-ac808.appspot.com",
+  messagingSenderId: "291993988323",
+  appId: "1:291993988323:web:fba0f0ddbede38ee57a9d6"
+};
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+
+
+
 let menuToggle = document.querySelector('#menu-toggle');
 let menu = document.querySelector('.sidebar');
 const regExpEmail = /^\w+@\w+\.\w{2,}$/;
@@ -14,8 +32,9 @@ const editContainer = document.querySelector('.edit-container');
 const userAvatarElem = document.querySelector('.user-avatar');
 const editUsername = document.querySelector('.edit-username');
 const editPhotoURL = document.querySelector('.edit-photo');
-
-const postsWrapper = document.querySelector('.posts')
+const buttonNewPost = document.querySelector('.button-new-post')
+const postsWrapper = document.querySelector('.posts');
+const addPostElem = document.querySelector('.add-post');
 
 const listUsers = [
   {
@@ -34,15 +53,15 @@ const listUsers = [
 
 const setUsers = {
   user: null,
-  logIn(email, password) {
-    const user = this.getUser(email);
-
+  logIn(email, password, handler) {
     if (!regExpEmail.test(email)) {
-      alert('email не валиден');
-      return;
+      return alert('email не валиден');
     }
+
+    const user = this.getUser(email);
     if (user && user.password === password) {
-      this.autorizedUser(user)
+      this.authorizedUser(user)
+      handler();
     } else {
       alert('Пользователь с такими данными не найден');
     }
@@ -89,7 +108,7 @@ const setPosts = {
       title: 'Заголовок поста',
       text: 'Далеко-далеко за словесными горами в стране гласных и согласных живут рыбные тексты. Языком что рот маленький реторический вершину текстов обеспечивает гор свой назад решила сбить маленькая дорогу жизни рукопись ему букв деревни предложения, ручеек залетают продолжил парадигматическая? Но языком сих пустился, запятой своего его снова решила меня вопроса моей своих пояс коварный, власти диких правилами напоивший они текстов ipsum первую подпоясал? Лучше, щеке подпоясал приставка большого курсивных на берегу своего? Злых, составитель агентство что вопроса ведущими о решила одна алфавит! ',
       tags: ['#свежее', '#новое', '#горячее', '#мое', '#случайность'],
-      author: 'maks@mail.com',
+      author: { displayName: 'maks', photo: 'https://www.google.am/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png' },
       date: '11.11.2020,20:54:00',
       like: 15,
       comments: 20,
@@ -98,12 +117,28 @@ const setPosts = {
       title: 'Заголовок поста',
       text: 'Далеко-далеко за словесными горами в стране гласных и согласных живут рыбные тексты. Языком что рот маленький реторический вершину текстов обеспечивает гор свой назад решила сбить маленькая дорогу жизни рукопись ему букв деревни предложения, ручеек залетают продолжил парадигматическая? Но языком сих пустился, запятой своего его снова решила меня вопроса моей своих пояс коварный, власти диких правилами напоивший они текстов ipsum первую подпоясал? Лучше, щеке подпоясал приставка большого курсивных на берегу своего? Злых, составитель агентство что вопроса ведущими о решила одна алфавит! ',
       tags: ['#свежее', '#новое', '#горячее', '#мое', '#случайность'],
-      author: 'maks@mail.com',
+      author: { displayName: 'google', photo: 'https://www.google.am/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png' },
       date: '11.11.2020,20:54:00',
       like: 45,
       comments: 12,
     }
-  ]
+  ],
+  addPost(title,text,tags,handler){
+    this.allPosts.unshift({
+      title,
+      text,
+      tags:tags.split(',').map(item => item.trim()),
+      author:{
+        displayName:setUsers.user.displayName,
+        photo: setUsers.user.photo,
+      },
+      date:new Date().toLocaleString(),
+      like:0,
+      comments:0,
+      
+    });
+    handler();
+  }
 }
 
 const togleAuthDom = () => {
@@ -112,18 +147,30 @@ const togleAuthDom = () => {
     loginElem.style.display = 'none';
     userElem.style.display = '';
     userNameElem.textContent = user.displayName;
-    userAvatarElem.src = user.photo ? user.photo : userAvatarElem.src
+    userAvatarElem.src = user.photo ? user.photo : userAvatarElem.src;
+    buttonNewPost.classList.add('visible');
   } else {
     loginElem.style.display = '';
     userElem.style.display = 'none';
+    buttonNewPost.classList.remove('visible');
+    addPostElem.classList.remove('visible');
+    postsWrapper.classList.add('visible');
   }
+};
+
+
+const showAddPost = () => {
+  addPostElem.classList.add('visible');
+  postsWrapper.classList.remove('visible');
 }
 
-
 const showAllPosts = () => {
+  addPostElem.classList.remove('visible');
+  postsWrapper.classList.add('visible');
+
   let postHTML = ''
 
-  setPosts.allPosts.forEach(({ title, text, date }) => {
+  setPosts.allPosts.forEach(({ title, text, date, tags, like, comments, author }) => {
 
     postHTML += `
       <section class="post">
@@ -132,7 +179,7 @@ const showAllPosts = () => {
           
           <p class="post-text">${text}</p>
           <div class="tags">
-            <a href="#" class="tag">#случайность</a>
+            ${tags.map(tag => `<a href="#" class="tag">${tag}</a>`)}
           </div>
           <!-- /.tags -->
         </div>
@@ -143,13 +190,13 @@ const showAllPosts = () => {
               <svg width="19" height="20" class="icon icon-like">
                 <use xlink:href="img/icons.svg#like"></use>
               </svg>
-              <span class="likes-counter">26</span>
+              <span class="likes-counter">${like}</span>
             </button>
             <button class="post-button comments">
               <svg width="21" height="21" class="icon icon-comment">
                 <use xlink:href="img/icons.svg#comment"></use>
               </svg>
-              <span class="comments-counter">157</span>
+              <span class="comments-counter">${comments}</span>
             </button>
             <button class="post-button save">
               <svg width="19" height="19" class="icon icon-save">
@@ -165,24 +212,21 @@ const showAllPosts = () => {
           <!-- /.post-buttons -->
           <div class="post-author">
             <div class="author-about">
-              <a href="#" class="author-username">arteislamov</a>
+              <a href="#" class="author-username">${author.displayName}</a>
               <span class="post-time">${date}</span>
             </div>
-            <a href="#" class="author-link"><img src="img/avatar.jpeg" alt="avatar" class="author-avatar"></a>
+            <a href="#" class="author-link"><img src="${author.photo || 'img/avatar.jpeg'}" alt="avatar" class="author-avatar"></a>
           </div>
           <!-- /.post-author -->
         </div>
         <!-- /.post-footer -->
       </section>`
   })
-
   postsWrapper.innerHTML = postHTML
-}
+};
+
+
 const init = () => {
-  menuToggle.addEventListener('click', function (event) {
-    event.preventDefault();
-    menu.classList.toggle('visible');
-  })
 
   loginForm.addEventListener('submit', event => {
     event.preventDefault();
@@ -222,6 +266,32 @@ const init = () => {
     editContainer.classList.remove('visible')
   })
 
+  menuToggle.addEventListener('click', function (event) {
+    event.preventDefault();
+    menu.classList.toggle('visible');
+  })
+
+  buttonNewPost.addEventListener('click', event => {
+    event.preventDefault();
+    showAddPost();
+  })
+  addPostElem.addEventListener('submit', event => {
+    event.preventDefault();
+    const {title , text ,tags } = addPostElem.elements;
+
+    if(title.value.length < 6){
+      alert('Слишком короткий заголовок');
+      return;
+    }
+    if (text.value.length < 50) {
+      alert('Слишком короткий пост');
+      return;
+    }
+
+    setPosts.addPost(title.value,text.value,tags.value,showAllPosts);
+
+    addPostElem.classList.remove('remove');
+  })
 
   showAllPosts();
   togleAuthDom();
