@@ -282,7 +282,7 @@ const init = () => {
     const emailValue = emailInput.value;
     const passwordValue = passwordInput.value;
 
-    setUsers.signUp(emailValue, passwordValue, togleAuthDom);
+    setUsers.signUp(emailValue, passwordValue, toggleAuthDom);
     loginForm.reset();
   });
 
