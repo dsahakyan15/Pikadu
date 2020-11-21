@@ -228,14 +228,6 @@ body {
   padding: 5px 15px;
   margin-bottom: 15px;
 }
-.login-forget {
-  text-align: center;
-  font-size: 12px;
-  text-decoration: none;
-  color: #757575;
-  margin-bottom: 10px;
-  font-style: italic;
-}
 .login-signin {
   background-color: #fa8c16;
   border: none;
