@@ -1,7 +1,7 @@
 
 
 // Your web app's Firebase configuration
-var firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyCRWZerDhPoeRCuhEHHjm9ObzHVn6e970g",
   authDomain: "pikapika-ac808.firebaseapp.com",
   databaseURL: "https://pikapika-ac808.firebaseio.com",
@@ -12,8 +12,6 @@ var firebaseConfig = {
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-
-
 
 
 let menuToggle = document.querySelector('#menu-toggle');
@@ -35,162 +33,175 @@ const editPhotoURL = document.querySelector('.edit-photo');
 const buttonNewPost = document.querySelector('.button-new-post')
 const postsWrapper = document.querySelector('.posts');
 const addPostElem = document.querySelector('.add-post');
+const DEFAULT_PHOTO = userAvatarElem.src;
 
-const listUsers = [
-  {
-    id: '01',
-    email: 'maks@gmail.com',
-    password: '123456',
-    displayName: 'MaksJS'
-  },
-  {
-    id: '02',
-    email: 'kate@gmail.com',
-    password: 'abcabc',
-    displayName: 'Kate'
-  }
-];
+
 
 const setUsers = {
   user: null,
-  logIn(email, password, handler) {
+  initUser(handler) {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        this.user = user;
+      }
+      else {
+        this.user = null
+      }
+      if (handler) handler();
+    })
+  },
+  logIn(email, password) {
     if (!regExpEmail.test(email)) {
-      return alert('email не валиден');
+      alert('email не валиден');
+      return;
     }
 
-    const user = this.getUser(email);
-    if (user && user.password === password) {
-      this.authorizedUser(user)
-      handler();
-    } else {
-      alert('Пользователь с такими данными не найден');
-    }
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .catch(err => {
+        const errCode = err.code;
+        const errMessage = err.mesage;
+
+        if (errCode === 'auth/wrong-password') {
+          console.log(errMessage);
+          alert('Неверный пароль')
+        } else if (errCode === 'auth/user-not-found') {
+          alert('Пользователь не найден')
+        }
+        else {
+          alert(errMessage)
+        }
+      })
+
+
+    // const user = this.getUser(email);
+    // if (user && user.password === password) {
+    //   this.authorizedUser(user)
+    //   handler();
+    // } else {
+    //   alert('Пользователь с такими данными не найден');
+    // }
   },
-  logOut(handler) {
-    this.user = null;
-    handler();
+  logOut() {
+
+    firebase.auth().signOut()
+
   },
   signUp(email, password, handler) {
+    if (!regExpEmail.test(email)) {
+      alert('Некорректный e-mail');
+      return;
+    }
 
     if (!email.trim() && !password.trim()) {
       alert('Введите данные');
       return;
     }
-    if (!this.getUser(email)) {
-      const user = { email, password, displayName: email.substring(0, email.indexOf('@')) }
-      listUsers.push(user)
-      this.authorizedUser(user);
-      handler()
-    } else {
-      alert('Пользовател с таким email зарегистрирован')
+
+    firebase.auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then(data => {
+        this.editUser(email.substring(0, email.indexOf('@')), null, handler)
+      })
+      .catch(err => {
+        const errCode = err.code;
+        const errMessage = err.message;
+
+        if (errCode === 'auth/week-password') {
+          console.log(errMessage);
+          alert('Слабый пароль')
+        } else if (errCode === 'auth/email-already-in-use') {
+          alert('Это email используется')
+        }
+        else {
+          alert(errMessage)
+        }
+
+        console.log(errMessage);
+      });
+
+    // if (!this.getUser(email)) {
+    //   const user = { email, password, displayName: email.substring(0, email.indexOf('@')) }
+    //   listUsers.push(user)
+    //   this.authorizedUser(user);
+    //   handler()
+    // } else {
+    //   alert('Пользовател с таким email зарегистрирован')
+    // }
+  },
+  editUser(displayName, photoURL, handler) {
+
+    const user = firebase.auth().currentUser;
+
+    if (displayName) {
+      if (photoURL) {
+        user.updateProfile({
+          displayName,
+          photoURL
+        }).then(handler)
+      } else {
+        user.updateProfile({
+        displayName
+        }).then(handler)
+      }
     }
   },
-  editUser(login, url = '', handler) {
-    if (login) {
-      this.user.displayName = login
-    }
-    if (url) {
-      this.user.photo = url
-    }
-    handler();
-  },
-  getUser(email) {
-    return listUsers.find(item => item.email === email)
-  },
-  authorizedUser(user) {
-    this.user = user;
-  }
+  // getUser(email) {
+  //   return listUsers.find(item => item.email === email)
+  // },
+  // authorizedUser(user) {
+  //   this.user = user;
+  // }
 };
 
 const setPosts = {
-  allPosts: [
-    {
-      title: 'Заголовок поста',
-      text: 'Далеко-далеко за словесными горами в стране гласных и согласных живут рыбные тексты. Языком что рот маленький реторический вершину текстов обеспечивает гор свой назад решила сбить маленькая дорогу жизни рукопись ему букв деревни предложения, ручеек залетают продолжил парадигматическая? Но языком сих пустился, запятой своего его снова решила меня вопроса моей своих пояс коварный, власти диких правилами напоивший они текстов ipsum первую подпоясал? Лучше, щеке подпоясал приставка большого курсивных на берегу своего? Злых, составитель агентство что вопроса ведущими о решила одна алфавит! ',
-      tags: ['#свежее', '#новое', '#горячее', '#мое', '#случайность'],
-      author: { displayName: 'maks', photo: 'https://www.google.am/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png' },
-      date: '11.11.2020,20:54:00',
-      like: 15,
-      comments: 20,
-    },
-    {
-      title: 'Заголовок поста',
-      text: 'Далеко-далеко за словесными горами в стране гласных и согласных живут рыбные тексты. Языком что рот маленький реторический вершину текстов обеспечивает гор свой назад решила сбить маленькая дорогу жизни рукопись ему букв деревни предложения, ручеек залетают продолжил парадигматическая? Но языком сих пустился, запятой своего его снова решила меня вопроса моей своих пояс коварный, власти диких правилами напоивший они текстов ipsum первую подпоясал? Лучше, щеке подпоясал приставка большого курсивных на берегу своего? Злых, составитель агентство что вопроса ведущими о решила одна алфавит! ',
-      tags: ['#свежее', '#новое', '#горячее', '#мое', '#случайность'],
-      author: { displayName: 'google', photo: 'https://www.google.am/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png' },
-      date: '11.11.2020,20:54:00',
-      like: 45,
-      comments: 12,
-    }
-  ],
-  addPost(title,text,tags,handler){
+  allPosts: [],
+  addPost(title, text, tags, handler) {
+
     this.allPosts.unshift({
+      id: `postID${(+new Date()).toString(16)}`,
       title,
       text,
-      tags:tags.split(',').map(item => item.trim()),
-      author:{
-        displayName:setUsers.user.displayName,
-        photo: setUsers.user.photo,
+      tags: tags.split(',').map(item => item.trim()),
+      author: {
+        displayName: setUsers.user.displayName,
+        photo: setUsers.user.photoURL,
       },
-      date:new Date().toLocaleString(),
-      like:0,
-      comments:0,
-      
+      date: new Date().toLocaleString(),
+      likes: 0,
+      comments: 0,
+
     });
-    handler();
+
+    firebase.database().ref('post').set(this.allPosts)
+      .then(() => this.getPosts(handler))
+  },
+  getPosts(handler) {
+    firebase.database().ref('post').on('value', snapshot => {
+      this.allPosts = snapshot.val() || [];
+      handler()
+    })
   }
-}
-
-const togleAuthDom = () => {
-  const user = setUsers.user;
-  if (user) {
-    loginElem.style.display = 'none';
-    userElem.style.display = '';
-    userNameElem.textContent = user.displayName;
-    userAvatarElem.src = user.photo ? user.photo : userAvatarElem.src;
-    buttonNewPost.classList.add('visible');
-  } else {
-    loginElem.style.display = '';
-    userElem.style.display = 'none';
-    buttonNewPost.classList.remove('visible');
-    addPostElem.classList.remove('visible');
-    postsWrapper.classList.add('visible');
-  }
-};
-
-
-const showAddPost = () => {
-  addPostElem.classList.add('visible');
-  postsWrapper.classList.remove('visible');
 }
 
 const showAllPosts = () => {
-  addPostElem.classList.remove('visible');
-  postsWrapper.classList.add('visible');
-
-  let postHTML = ''
-
-  setPosts.allPosts.forEach(({ title, text, date, tags, like, comments, author }) => {
-
-    postHTML += `
+  let postsHTML = '';
+  setPosts.allPosts.forEach(({ title, text, tags, date, author, likes, comments }) => {
+    postsHTML += `
       <section class="post">
         <div class="post-body">
           <h2 class="post-title">${title}</h2>
-          
           <p class="post-text">${text}</p>
           <div class="tags">
-            ${tags.map(tag => `<a href="#" class="tag">${tag}</a>`)}
+            ${tags.map(tag => `<a href="#" class="tag">#${tag}</a>`)}            
           </div>
-          <!-- /.tags -->
         </div>
-        <!-- /.post-body -->
         <div class="post-footer">
           <div class="post-buttons">
             <button class="post-button likes">
               <svg width="19" height="20" class="icon icon-like">
                 <use xlink:href="img/icons.svg#like"></use>
               </svg>
-              <span class="likes-counter">${like}</span>
+              <span class="likes-counter">${likes}</span>
             </button>
             <button class="post-button comments">
               <svg width="21" height="21" class="icon icon-comment">
@@ -209,22 +220,49 @@ const showAllPosts = () => {
               </svg>
             </button>
           </div>
-          <!-- /.post-buttons -->
           <div class="post-author">
             <div class="author-about">
               <a href="#" class="author-username">${author.displayName}</a>
               <span class="post-time">${date}</span>
             </div>
-            <a href="#" class="author-link"><img src="${author.photo || 'img/avatar.jpeg'}" alt="avatar" class="author-avatar"></a>
+            <a href="#" class="author-link">
+              <img src=${author.photo || 'https://whatsism.com/uploads/posts/2018-05/thumbs/1525373578_va_pikachu.jpg'} 
+                  alt="avatar" 
+                  class="author-avatar">
+            </a>
           </div>
-          <!-- /.post-author -->
         </div>
-        <!-- /.post-footer -->
-      </section>`
-  })
-  postsWrapper.innerHTML = postHTML
+      </section>
+      `;
+  });
+  postsWrapper.innerHTML = postsHTML;
+  addPostElem.classList.remove('visible');
+  postsWrapper.classList.add('visible');
 };
 
+
+const toggleAuthDom = () => {
+  const user = setUsers.user;
+  if (user) {
+    loginElem.style.display = 'none';
+    userElem.style.display = '';
+    userNameElem.textContent = user.displayName;
+    userAvatarElem.src = user.photo || DEFAULT_PHOTO;
+    buttonNewPost.classList.add('visible');
+  } else {
+    loginElem.style.display = '';
+    userElem.style.display = 'none';
+    buttonNewPost.classList.remove('visible');
+    addPostElem.classList.remove('visible');
+    postsWrapper.classList.add('visible');
+  }
+};
+
+
+const showAddPost = () => {
+  addPostElem.classList.add('visible');
+  postsWrapper.classList.remove('visible');
+}
 
 const init = () => {
 
@@ -250,13 +288,13 @@ const init = () => {
 
   exitElem.addEventListener('click', event => {
     event.preventDefault();
-    setUsers.logOut(togleAuthDom);
+    setUsers.logOut();
   })
 
   editElem.addEventListener('click', event => {
     event.preventDefault();
     editContainer.classList.toggle('visible');
-    editUsername.value = setUsers.displayName
+    editUsername.value = setUsers.user.displayName
   })
 
   editContainer.addEventListener('submit', event => {
@@ -277,9 +315,9 @@ const init = () => {
   })
   addPostElem.addEventListener('submit', event => {
     event.preventDefault();
-    const {title , text ,tags } = addPostElem.elements;
+    const { title, text, tags } = addPostElem.elements;
 
-    if(title.value.length < 6){
+    if (title.value.length < 6) {
       alert('Слишком короткий заголовок');
       return;
     }
@@ -288,13 +326,14 @@ const init = () => {
       return;
     }
 
-    setPosts.addPost(title.value,text.value,tags.value,showAllPosts);
+    setPosts.addPost(title.value, text.value, tags.value, showAllPosts);
 
     addPostElem.classList.remove('remove');
   })
 
-  showAllPosts();
-  togleAuthDom();
+  setUsers.initUser(toggleAuthDom)
+
+  setPosts.getPosts(showAllPosts);
 }
 
 
